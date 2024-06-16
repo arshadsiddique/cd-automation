@@ -44,14 +44,14 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan
-        
+
       - name: Comment PR with Terraform Plan
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           script: |
-            const planOutput = `### Terraform Plan\n\`\`\`\n${{ steps.plan.outputs.stdout }}\n\`\`\``;
+            const planOutput = `### Terraform Plan\n\`\`\`\n${{ steps.show.outputs.stdout }}\n\`\`\``;
             github.rest.issues.createComment({
               issue_number: context.payload.pull_request.number,
               owner: context.repo.owner,
