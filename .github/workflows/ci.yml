@@ -49,7 +49,9 @@ jobs:
 
       - name: Show Terraform Plan
         id: show
-        run: terraform show -json tfplan > tfplan.json
+        run: |
+          terraform show -json tfplan > tfplan.json
+          cat tfplan.json
 
       - name: Debug JSON Output
         run: |
@@ -63,12 +65,14 @@ jobs:
           echo '```' >> plan.md
           cat tfplan.json | jq -r '.resource_changes[] | select(.change.actions | contains(["create","update","delete"])) | [.type, .name, .change.actions[]] | @tsv' >> plan.md
           echo '```' >> plan.md
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Comment PR with Terraform Plan
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
             const plan = fs.readFileSync('plan.md', 'utf8');
