@@ -1,0 +1,5 @@
+---
+replicaCount: 1
+image: "redis:latest"
+storage: "1Gi"
+ingressHost: "redis.local"
