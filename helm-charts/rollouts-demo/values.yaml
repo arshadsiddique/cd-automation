@@ -1,0 +1,4 @@
+---
+replicas: 4
+image: "argoproj/rollouts-demo:green"
+ingressHost: "rollouts-demo.local"
