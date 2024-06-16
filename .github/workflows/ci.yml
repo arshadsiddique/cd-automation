@@ -43,7 +43,23 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Show Terraform Plan
+        id: show
+        run: terraform show -json tfplan > tfplan.json
+
+      - name: Format Terraform Plan Output
+        id: format
+        run: |
+          echo "### Terraform Plan" > plan.md
+          echo '```' >> plan.md
+          cat tfplan.json | jq -r '.resource_changes[] | select(.change.actions | contains(["create","update","delete"])) | [.type, .name, .change.actions[]] | @tsv' >> plan.md
+          echo '```' >> plan.md
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Comment PR with Terraform Plan
         if: github.event_name == 'pull_request'
@@ -51,10 +67,12 @@ jobs:
         with:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           script: |
-            const planOutput = `### Terraform Plan\n\`\`\`\n${{ steps.show.outputs.stdout }}\n\`\`\``;
+            const fs = require('fs');
+            const plan = fs.readFileSync('plan.md', 'utf8');
             github.rest.issues.createComment({
-              issue_number: context.payload.pull_request.number,
+              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: planOutput
+              body: plan
             });
+
