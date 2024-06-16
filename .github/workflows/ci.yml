@@ -51,6 +51,11 @@ jobs:
         id: show
         run: terraform show -json tfplan > tfplan.json
 
+      - name: Debug JSON Output
+        run: |
+          echo "Content of tfplan.json:"
+          cat tfplan.json
+
       - name: Format Terraform Plan Output
         id: format
         run: |
@@ -58,8 +63,6 @@ jobs:
           echo '```' >> plan.md
           cat tfplan.json | jq -r '.resource_changes[] | select(.change.actions | contains(["create","update","delete"])) | [.type, .name, .change.actions[]] | @tsv' >> plan.md
           echo '```' >> plan.md
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Comment PR with Terraform Plan
         if: github.event_name == 'pull_request'
@@ -75,4 +78,3 @@ jobs:
               repo: context.repo.repo,
               body: plan
             });
-
