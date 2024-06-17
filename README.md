@@ -69,11 +69,8 @@ helm-charts
     └── values.yaml
 ```
 ### 3. Install the Nginx controller for ingress.
-```bash
-kubectl create namespace ingress-nginx
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-```
-After the terraform apply is done with the config present in the git repo. It will create 3 ingress
+We will be installing the nginx ingress controller with the offical helm chart with terraform.
+
 ```bash
 ❯ kubectl get ingress
 NAME                                         CLASS   HOSTS                 ADDRESS     PORTS   AGE
