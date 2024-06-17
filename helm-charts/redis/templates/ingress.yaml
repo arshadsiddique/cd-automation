@@ -13,7 +13,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: service-redis
+            name: redis-svc
             port:
               number: 6379
 
