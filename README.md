@@ -73,6 +73,26 @@ helm-charts
 kubectl create namespace ingress-nginx
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 ```
+After the terraform apply is done with the config present in the git repo. It will create 3 ingress
+```bash
+❯ kubectl get ingress
+NAME                                         CLASS   HOSTS                 ADDRESS     PORTS   AGE
+redis-ingress                                nginx   redis.local           localhost   80      5m46s
+rollouts-demo-primary                        nginx   rollouts-demo.local   localhost   80      5m45s
+rollouts-demo-rollouts-demo-primary-canary   nginx   rollouts-demo.local   localhost   80      5m45s
+```
+
+The rollouts-demo-rollouts-demo-primary-canary ingress has following annotations
+```bash
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "20"
+  name: rollouts-demo-rollouts-demo-primary-canary
+  namespace: default
+```
 
 ### 4. Install Argo Rollouts Controller
 ```bash
@@ -99,7 +119,37 @@ terraform apply
 
 ### 8. To get the status of the rollouts
 As we have already set the canary-weight to 20%.
-80% traffic will go to the primary and rest 20% to the canary.
+
+Argo rollout config.
+
+```bash
+❯ cat rollout.yaml 
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: rollouts-demo
+spec:
+  replicas: {{ .Values.replicas }}
+  strategy:
+    canary:
+      canaryService: rollouts-demo-canary
+      stableService: rollouts-demo-primary
+      trafficRouting:
+        nginx:
+          stableIngress: rollouts-demo-primary
+      steps:
+      - setWeight: 20
+      - pause: {}
+```
+80% of traffic will be routed to the primary and rest 20% of traffic be routed to the canary based on rollouts-pod-template-hash label applied to the replicaSets for primary and canary.
+
+```bash
+❯ kubectl get rs                                    
+NAME                       DESIRED   CURRENT   READY   AGE
+rollouts-demo-687d76d795   1         1         1       4m37s
+rollouts-demo-7d9c645dbb   4         4         4       4m37s
+```
 
 ```bash
 kubectl argo rollouts get rollout rollouts-demo
