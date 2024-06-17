@@ -69,7 +69,7 @@ helm-charts
     └── values.yaml
 ```
 ### 3. Install the Nginx controller for ingress.
-We will be installing the nginx ingress controller with the offical helm chart with terraform.
+Nginx ingress controller will be installed with terraform.
 
 ```bash
 ❯ kubectl get ingress
@@ -79,7 +79,8 @@ rollouts-demo-primary                        nginx   rollouts-demo.local   local
 rollouts-demo-rollouts-demo-primary-canary   nginx   rollouts-demo.local   localhost   80      5m45s
 ```
 
-The rollouts-demo-rollouts-demo-primary-canary ingress has following annotations
+The rollouts-demo-rollouts-demo-primary-canary ingress has following annotations which is auto created with the argo rollout config.
+
 ```bash
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -92,10 +93,7 @@ metadata:
 ```
 
 ### 4. Install Argo Rollouts Controller
-```bash
-kubectl create namespace argo-rollouts
-kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
-```
+Argo rollouts will be installed with the helm using terraform
 
 ### 5. Create host entries for local system in /etc/hosts for testing
 ```bash
@@ -139,7 +137,8 @@ spec:
       - setWeight: 20
       - pause: {}
 ```
-80% of traffic will be routed to the primary and rest 20% of traffic be routed to the canary based on rollouts-pod-template-hash label applied to the replicaSets for primary and canary.
+
+Check the replicaSets
 
 ```bash
 ❯ kubectl get rs                                    
@@ -147,6 +146,8 @@ NAME                       DESIRED   CURRENT   READY   AGE
 rollouts-demo-687d76d795   1         1         1       4m37s
 rollouts-demo-7d9c645dbb   4         4         4       4m37s
 ```
+
+80% of traffic will be routed to the primary and rest 20% of traffic be routed to the canary based on rollouts-pod-template-hash label applied to the replicaSets of primary and canary.
 
 ```bash
 kubectl argo rollouts get rollout rollouts-demo
@@ -187,7 +188,9 @@ It will promote canary to the stable release and the traffic to the canary will 
 ```bash
 kubectl argo rollouts promote rollouts-demo
 ```
-It will show: rollout 'rollouts-demo' promoted
+
+This will promote the canary to the stable
+
 ```bash
 ❯ kubectl argo rollouts get rollout rollouts-demo
 Name:            rollouts-demo
@@ -221,7 +224,9 @@ NAME                                       KIND        STATUS     AGE    INFO
       ├──□ rollouts-demo-7d9c645dbb-qqpt2  Pod         ✔ Running  2m36s  ready:1/1
       └──□ rollouts-demo-7d9c645dbb-x6lm5  Pod         ✔ Running  2m36s  ready:1/1
 ```
-Again Check the status of the rollout, the previous rollout will be scaled down after the canary is promoted.
+
+Check the status of the rollout, the previous version will be scaled down after the canary is promoted.
+
 ```bash
 ❯ kubectl argo rollouts get rollout rollouts-demo
 Name:            rollouts-demo
