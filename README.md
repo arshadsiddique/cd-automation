@@ -263,15 +263,3 @@ To destroy the infrastructure managed by Terraform:
 ```bash
 terraform destroy
 ```
-
-To uninstall the NGINX Ingress Controller:
-
-```bash
-kubectl delete namespace ingress-nginx
-```
-
-To uninstall the Argo Rollouts Controller:
-
-```bash
-kubectl delete namespace argo-rollouts
-```
